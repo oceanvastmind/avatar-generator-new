@@ -7,9 +7,11 @@ const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// fal.ai API Key
-const falApiKey = fs.readFileSync('/Users/qunyingfan/.openclaw/workspace/fal_api_key.txt', 'utf8').trim();
-const falModelId = 'face-to-cartoon-3d'; // Replace with the actual model ID
+// replicate API Key
+const replicateApiKey = '4f9aa712-b7a9-4359-96e6-5aa35244b134:d84e0e84c292c22019e981bd10342823';
+
+const replicateModelId = 'stability-ai/stable-diffusion:db21e94d56c235a21f793be9e26e5625122c935a92565dca3f2aedba80c35b63'; // Replace with the actual model ID
+
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -35,31 +37,33 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
     return res.status(400).send('No files were uploaded.');
   }
 
-  const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;
+  const imageUrl = `http://127.0.0.1:${port}/uploads/${req.file.filename}`;
+  console.log("Image URL:", imageUrl);
 
   try {
     const response = await axios({
       method: 'POST',
-      url: `https://api.fal.ai/v1/model/${falModelId}/predict`,
+      url: `https://api.replicate.com/v1/predictions`,
       headers: {
-        'Authorization': `Key ${falApiKey}`,
+        'Authorization': `Token ${replicateApiKey}`,
         'Content-Type': 'application/json'
       },
       data: {
+        version: replicateModelId,
         input: {
-          image_url: imageUrl
+          prompt: imageUrl
         }
       }
     });
 
-    const avatarUrl = response.data.images[0].url; // Adjust based on the actual API response
+    const avatarUrl = response.data.output[0]; // Adjust based on the actual API response
+    console.log("Avatar URL:", avatarUrl);
     res.send('File uploaded successfully! Avatar URL: ' + avatarUrl);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error generating avatar');
+    console.error("Error generating avatar:", error);
+    res.status(500).send('Error generating avatar: ' + error.message);
   }
-
 });
 
 app.listen(port, () => {
