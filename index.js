@@ -9,8 +9,9 @@ const port = process.env.PORT || 3000;
 
 // replicate API Key
 const replicateApiKey = '4f9aa712-b7a9-4359-96e6-5aa35244b134:d84e0e84c292c22019e981bd10342823';
-
+console.log("Replicate API Key Loaded (partial):", replicateApiKey.substring(0, 10) + "...");
 const replicateModelId = 'stability-ai/stable-diffusion:db21e94d56c235a21f793be9e26e5625122c935a92565dca3f2aedba80c35b63'; // Replace with the actual model ID
+console.log("Replicate Model ID:", replicateModelId);
 
 
 // Configure multer for file uploads
@@ -41,6 +42,7 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
   console.log("Image URL:", imageUrl);
 
   try {
+    console.log("Sending image to Replicate. Image URL:", imageUrl);
     const response = await axios({
       method: 'POST',
       url: `https://api.replicate.com/v1/predictions`,
@@ -55,6 +57,7 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
         }
       }
     });
+    console.log("Replicate API Response:", response.data);
 
     const avatarUrl = response.data.output[0]; // Adjust based on the actual API response
     console.log("Avatar URL:", avatarUrl);
