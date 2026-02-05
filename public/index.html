@@ -1,13 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Avatar Generator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Trainer Avatar Creator</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Avatar Generator</h1>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="avatar">
-    <input type="submit" value="Upload">
-  </form>
+  <header>
+    <h1><span class="logo-text">P O K É M O N</span> Trainer Avatar Creator</h1>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <h2>Choose Your Partner Pokémon (Image)</h2>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="avatar" accept="image/*">
+        <button type="submit" class="pokeball-button">Upload & Generate!</button>
+      </form>
+    </section>
+
+    <section class="avatar-display">
+      <h2>Your New Trainer Avatar!</h2>
+      <div class="pokedex-frame">
+        <img id="generated-avatar" src="" alt="Generated Avatar" style="display:none;">
+        <p id="avatar-placeholder">Upload an image to create your avatar!</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Pokémon Avatar Co. Gotta Catch 'Em All!</p>
+  </footer>
 </body>
 </html>
