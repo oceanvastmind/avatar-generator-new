@@ -27,8 +27,8 @@ console.log("Replicate API Key Loaded (partial):", replicateApiKey ? replicateAp
 const replicateModelId = 'stability-ai/stable-diffusion:db21e94d56c235a21f793be9e26e5625122c935a92565dca3f2aedba80c35b63'; // Replace with the actual model ID
 console.log("Replicate Model ID:", replicateModelId);
 
-// Configure multer for temporary local file storage before S3 upload
-const upload = multer({ dest: 'uploads/' });
+// Configure multer to use memory storage, suitable for serverless environments
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.static('public'));
 // Removed app.use('/uploads', express.static('uploads')); as images are now on S3
@@ -49,8 +49,7 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
     Bucket: S3_BUCKET_NAME,
     Key: s3Key,
     Body: fileContent,
-    ContentType: req.file.mimetype,
-    ACL: 'public-read' // Make the uploaded image publicly accessible
+    ContentType: req.file.mimetype
   };
 
   let imageUrl; // This will be the S3 URL
