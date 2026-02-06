@@ -9,8 +9,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // AWS S3 Configuration - Hardcoded for now, ideally from env variables on Vercel
-const AWS_REGION = 'us-east-1';
-const S3_BUCKET_NAME = 'ocean-s3-bucket1';
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_REGION = process.env.AWS_REGION;
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
 
 AWS.config.update({
   accessKeyId: AWS_ACCESS_KEY_ID,
