@@ -22,8 +22,8 @@ AWS.config.update({
 const s3 = new AWS.S3();
 
 // Replicate API Key
-const replicateApiKey = '4f9aa712-b7a9-4359-96e6-5aa35244b134:d84e0e84c292c22019e981bd10342823';
-console.log("Replicate API Key Loaded (partial):", replicateApiKey.substring(0, 10) + "...");
+const replicateApiKey = process.env.REPLICATE_API_KEY;
+console.log("Replicate API Key Loaded (partial):", replicateApiKey ? replicateApiKey.substring(0, 10) + "..." : "Not set");
 const replicateModelId = 'stability-ai/stable-diffusion:db21e94d56c235a21f793be9e26e5625122c935a92565dca3f2aedba80c35b63'; // Replace with the actual model ID
 console.log("Replicate Model ID:", replicateModelId);
 
