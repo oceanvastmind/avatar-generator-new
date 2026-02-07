@@ -1,14 +1,14 @@
 const express = require('express');
 const multer  = require('multer');
 const path = require('path');
-const axios = require('axios');
+const { GoogleGenerativeAI } = require('@google/generative-ai'); // Import GoogleGenerativeAI SDK
 const fs = require('fs');
 const AWS = require('aws-sdk'); // Import AWS SDK
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// AWS S3 Configuration - Hardcoded for now, ideally from env variables on Vercel
+// AWS S3 Configuration - Using environment variables
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_REGION = process.env.AWS_REGION;
@@ -21,11 +21,12 @@ AWS.config.update({
 });
 const s3 = new AWS.S3();
 
-// Replicate API Key
-const replicateApiKey = process.env.REPLICATE_API_KEY;
-console.log("Replicate API Key Loaded (partial):", replicateApiKey ? replicateApiKey.substring(0, 10) + "..." : "Not set");
-const replicateModelId = 'stability-ai/stable-diffusion:db21e94d56c235a21f793be9e26e5625122c935a92565dca3f2aedba80c35b63'; // Replace with the actual model ID
-console.log("Replicate Model ID:", replicateModelId);
+// Gemini API Configuration
+const geminiApiKey = process.env.GOOGLE_API_KEY; // Using environment variable
+console.log("Gemini API Key Loaded (partial):", geminiApiKey ? geminiApiKey.substring(0, 10) + "..." : "Not set");
+const generativeModelName = "gemini-2.5-flash-image"; // Using the specified model
+const genAI = new GoogleGenerativeAI(geminiApiKey);
+const generativeModel = genAI.getGenerativeModel({ model: generativeModelName });
 
 // Configure multer to use memory storage, suitable for serverless environments
 const upload = multer({ storage: multer.memoryStorage() });
@@ -38,11 +39,12 @@ app.get('/', (req, res) => {
 });
 
 app.post('/upload', upload.single('avatar'), async (req, res) => {
+  console.log("Received req.file:", req.file);
   if (!req.file) {
     return res.status(400).send('No files were uploaded.');
   }
 
-  const fileContent = fs.readFileSync(req.file.path);
+  const fileContent = req.file.buffer;
   const s3Key = `avatars/${Date.now()}-${req.file.originalname}`;
 
   const params = {
@@ -54,47 +56,48 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
 
   let imageUrl; // This will be the S3 URL
 
+  console.log("Attempting S3 upload...");
   try {
     const s3UploadResult = await s3.upload(params).promise();
     imageUrl = s3UploadResult.Location; // This is the public URL from S3
 
     console.log("Image uploaded to S3. URL:", imageUrl);
 
-    // Clean up local file after upload
-    fs.unlinkSync(req.file.path);
+    // No local file cleanup needed as multer uses memory storage
 
   } catch (s3Error) {
     console.error("Error uploading to S3:", s3Error);
-    // Clean up local file even on S3 upload error
-    fs.unlinkSync(req.file.path);
     return res.status(500).send('Error uploading image to cloud storage: ' + s3Error.message);
   }
 
-  console.log("Sending image to Replicate. Image URL:", imageUrl);
+  console.log("Sending image to Gemini. Image URL:", imageUrl);
 
   try {
-    const response = await axios({
-      method: 'POST',
-      url: `https://api.replicate.com/v1/predictions`,
-      headers: {
-        'Authorization': `Token ${replicateApiKey}`,
-        'Content-Type': 'application/json'
+    const imagePart = {
+      inlineData: {
+        data: req.file.buffer.toString('base64'),
+        mimeType: req.file.mimetype,
       },
-      data: {
-        version: replicateModelId,
-        input: {
-          prompt: imageUrl
-        }
-      }
-    });
-    console.log("Replicate API Response:", response.data);
+    };
 
-    const avatarUrl = response.data.output[0]; // Adjust based on the actual API response
+    const prompt = "Generate a cool avatar from this image in a Pokémon trainer style. Describe the avatar as a URL if possible.";
+
+    const result = await generativeModel.generateContent([
+      prompt,
+      imagePart,
+    ]);
+    const response = await result.response;
+    const text = response.text();
+
+    // For now, let's assume the Gemini response text contains the avatar URL or can be directly used
+    const avatarUrl = text; 
+
+    console.log("Gemini API Response:", text);
     console.log("Avatar URL:", avatarUrl);
     res.send('File uploaded successfully! Avatar URL: ' + avatarUrl);
 
   } catch (error) {
-    console.error("Error generating avatar:", error);
+    console.error("Error generating avatar with Gemini:", error);
     res.status(500).send('Error generating avatar: ' + error.message);
   }
 });
