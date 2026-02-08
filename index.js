@@ -80,7 +80,7 @@ app.post('/upload', upload.single('avatar'), async (req, res) => {
       },
     };
 
-    const prompt = "Generate a cool avatar from this image in a Pokémon trainer style. Provide only the direct, publicly accessible URL to the generated avatar image. Do not provide any other text.";
+    const prompt = "Generate a cool avatar from this image in a Pokémon trainer style. Describe the avatar as a URL if possible.";
 
     const result = await generativeModel.generateContent([
       prompt,
