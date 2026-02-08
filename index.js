@@ -24,7 +24,7 @@ const s3 = new AWS.S3();
 // Gemini API Configuration
 const geminiApiKey = process.env.GOOGLE_API_KEY; // Using environment variable
 console.log("Gemini API Key Loaded (partial):", geminiApiKey ? geminiApiKey.substring(0, 10) + "..." : "Not set");
-const generativeModelName = "gemini-2.5-flash-image"; // Using the specified model
+const generativeModelName = "gemini-pro-vision"; // Using the specified model
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 const generativeModel = genAI.getGenerativeModel({ model: generativeModelName });
 
